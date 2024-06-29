@@ -5,6 +5,8 @@
 An example FTP server with minimal user authentication.
 """
 
+import requests
+
 from twisted.cred.checkers import AllowAnonymousAccess
 from twisted.cred.portal import Portal
 from twisted.internet import reactor, defer
@@ -16,11 +18,24 @@ from twisted.protocols.ftp import (
     errnoToFailure,
     IWriteFile,
 )
+from twisted.python import usage
 from zope.interface import implementer
+
+import sys
+
+
+class Options(usage.Options):
+    optParameters = [
+        ["port", "p", 21, "The port number to listen on", int],
+        ["root", "r", "./upload", "The root directory for the FTP server"],
+        ["webhook", "w", None, "The webhook URL to send uploaded files to"],
+    ]
 
 
 @implementer(IWriteFile)
 class FileWebhookConsumer:
+    webhook_url = None  # This will be set from the CLI
+
     def __init__(self, fObj) -> None:
         self.fObj = fObj
 
@@ -33,8 +48,13 @@ class FileWebhookConsumer:
         self.fObj.close()
 
     def write(self, bytes):
-        # TODO: send here the file contend to a webhook
-        print(bytes)
+        if self.webhook_url:
+            requests.post(
+                self.webhook_url,
+                data=bytes,
+            )
+        else:
+            print("No webhook URL provided. Skipping webhook call.")
 
 
 @implementer(IWriteFile)
@@ -92,9 +112,28 @@ class CustomFTPRealm(FTPRealm):
         raise NotImplementedError()
 
 
-if __name__ == "__main__":
-    p = Portal(CustomFTPRealm("./"), [AllowAnonymousAccess()])
+def main(config):
+    root = config["root"]
+    port = config["port"]
+    webhook_url = config["webhook"]
+
+    # Update FileWebhookConsumer to use the provided webhook URL
+    FileWebhookConsumer.webhook_url = webhook_url
+
+    p = Portal(CustomFTPRealm(root), [AllowAnonymousAccess()])
     f = FTPFactory(p)
 
-    reactor.listenTCP(21, f)
+    reactor.listenTCP(port, f)
     reactor.run()
+
+
+if __name__ == "__main__":
+    options = Options()
+    try:
+        options.parseOptions()
+    except usage.UsageError as errortext:
+        print(f"{sys.argv[0]}: {errortext}")
+        print(f"{sys.argv[0]}: Try --help for usage details.")
+        sys.exit(1)
+
+    main(options)
