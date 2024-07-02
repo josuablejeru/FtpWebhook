@@ -5,10 +5,6 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ftp-webhook
-    cap_add:
-      - NET_ADMIN
-    devices:
-      - /dev/net/tun
     ports:
       - "2121:2121"
       - "50000-50010:50000-50010"

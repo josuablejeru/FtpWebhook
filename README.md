@@ -1,8 +1,10 @@
 # FTP Webhook
 
-Upload files via FTP and send them to a Webhook.
+Upload Text files via FTP and send them to a Webhook.
 
 This service is particularly useful in contexts where legacy programs can only export data via FTP and cannot communicate over HTTP.
+
+> This Project is focused at csv files right now and sends them as normal string body
 
 ## Features
 
