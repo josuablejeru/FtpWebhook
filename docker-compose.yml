@@ -1,0 +1,21 @@
+
+services:
+  ftp-webhook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ftp-webhook
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    ports:
+      - "2121:2121"
+      - "50000-50010:50000-50010"
+    command:
+      [
+        "python",
+        "app/ftp_server.py",
+        "-p 2121",
+        "-w https://webhook.site/52f34eba-1c81-4de9-ba5d-ab2cecb4d098",
+      ]

@@ -122,6 +122,8 @@ def main(config):
 
     p = Portal(CustomFTPRealm(root), [AllowAnonymousAccess()])
     f = FTPFactory(p)
+    f.timeOut = 4800  # seconds
+    f.passivePortRange = range(50000, 50010)
 
     reactor.listenTCP(port, f)
     reactor.run()

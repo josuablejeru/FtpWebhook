@@ -6,7 +6,10 @@ WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
+  build-essential \
   curl \
+  libffi-dev \
+  libssl-dev \
   && rm -rf /var/lib/apt/lists/*
 
 
@@ -25,6 +28,9 @@ RUN poetry config virtualenvs.create false \
 
 # Copy the rest of your application's code
 COPY . .
+
+EXPOSE 21
+EXPOSE 50000-50010
 
 # Run your Python command
 CMD ["python", "app/ftp_server.py", "--help"]

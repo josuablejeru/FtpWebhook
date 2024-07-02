@@ -41,3 +41,28 @@ To start the FTP server on port 2121, with the root directory as /data/uploads, 
 ```bash
 python app/ftp_server.py -p 2121 -r /data/uploads -w http://example.com/webhook
 ```
+
+## Docker Compose
+
+```yml
+services:
+  ftp-webhook:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ftp-webhook
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    ports:
+      - "2121:2121"
+      - "50000-50010:50000-50010"
+    command:
+      [
+        "python",
+        "app/ftp_server.py",
+        "-p 2121",
+        "-w https://example.webhook",
+      ]
+```
